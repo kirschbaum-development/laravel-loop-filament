@@ -2,15 +2,11 @@
 
 namespace Kirschbaum\Loop\Filament;
 
-use Kirschbaum\Loop\Enums\Mode;
 use Filament\Resources\Resource;
+use Kirschbaum\Loop\Collections\ToolCollection;
 use Kirschbaum\Loop\Concerns\Makeable;
 use Kirschbaum\Loop\Contracts\Toolkit;
-use Kirschbaum\Loop\Collections\ToolCollection;
-use Kirschbaum\Loop\Filament\ExecuteResourceActionTool;
-use Kirschbaum\Loop\Filament\ListFilamentResourcesTool;
-use Kirschbaum\Loop\Filament\GetFilamentResourceDataTool;
-use Kirschbaum\Loop\Filament\DescribeFilamentResourceTool;
+use Kirschbaum\Loop\Enums\Mode;
 
 /**
  * @method static self make(Resource[] $resources, Mode $mode = Mode::ReadOnly)
