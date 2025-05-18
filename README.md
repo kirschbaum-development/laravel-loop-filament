@@ -1,15 +1,20 @@
 # Filament MCP Server - Laravel Loop
 
+> [!IMPORTANT]
+> This is a beta version and is not recommended for production use yet.
+
 The Laravel Loop Filament MCP Server is an extension for [Laravel Loop](https://github.com/kirschbaum-development/laravel-loop) that exposes your Filament Resources as an MCP server. This allows AI assistants and MCP clients to interact with your Filament Resources for data listing, querying, and (optionally) actions.
 
 ## What It Does
 
-- Exposes your Filament Resources as MCP tools
-- Allows AI assistants and MCP clients to:
-  - List available Filament Resources
-  - Describe resource structure, fields, columns, filters, and relationships
-  - Query resource data with filters
-  - (Optionally) Execute resource actions (bulk actions, etc.)
+Exposes your Filament Resources as MCP tools. There are 4 tools available:
+
+- `list_filament_resources`: Lists all available Filament Resources to the MCP client.
+- `describe_filament_resource`: Describes the structure, fields, columns, filters, and relationships for a given resource to the MCP client.
+- `get_filament_resource_data`: Queries data for a resource, with optional filters.
+- `execute_filament_resource_action`: Executes a bulk action on a resource (only in ReadWrite mode).
+
+
 
 ## Installation
 
@@ -56,10 +61,16 @@ Loop::toolkit(
 
 ## Usage
 
+After registering the toolkit, you have to connect Laravel Loop to a MCP client, and the tools will be available.
 
 ## Security
-Only expose the MCP endpoint to trusted clients. Use authentication middleware (e.g., Sanctum) for HTTP endpoints.
+
+If you discover any security related issues, please email security@kirschbaumdevelopment.com instead of using the issue tracker.
+
+## Sponsorship
+
+Development of this package is sponsored by Kirschbaum Development Group, a developer driven company focused on problem solving, team building, and community. Learn more [about us](https://kirschbaumdevelopment.com?utm_source=github) or [join us](https://careers.kirschbaumdevelopment.com?utm_source=github)!
 
 ## License
 
-MIT
+The MIT License (MIT). Please see [License File](LICENSE) for more information.

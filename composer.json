@@ -1,5 +1,5 @@
 {
-    "name": "kirschbaum-development/laravel-loop-filament-mcp-server",
+    "name": "kirschbaum-development/laravel-loop-filament",
     "description": "Filament MCP Server for Laravel Loop",
     "type": "library",
     "license": "MIT",
