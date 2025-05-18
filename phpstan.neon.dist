@@ -1,0 +1,18 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    tmpDir: build/phpstan
+
+    level: 9
+
+    paths:
+        - src
+
+    excludePaths:
+
+
+    checkOctaneCompatibility: true
+    checkModelProperties: true
+    noEnvCallsOutsideOfConfig: false
