@@ -1,0 +1,74 @@
+{
+    "name": "kirschbaum-development/laravel-loop-filament-mcp-server",
+    "description": "Filament MCP Server for Laravel Loop",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Kirschbaum\\Loop\\Filament\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Luís Dalmolin",
+            "email": "luis.nh@gmail.com"
+        }
+    ],
+    "require": {
+        "spatie/laravel-package-tools": "^1.18",
+        "filament/support": "^3.2",
+        "filament/notifications": "^3.2",
+        "filament/filament": "^3.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.8",
+        "illuminate/auth": "^11.0|^12.0",
+        "orchestra/testbench": "^9.9|^10.0",
+        "pestphp/pest-plugin-laravel": "^3.1",
+        "pestphp/pest-plugin-livewire": "^3.0",
+        "laravel/pint": "^1.21",
+        "larastan/larastan": "^3.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "analyse": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --ansi"
+        ],
+        "test": [
+            "@clear",
+            "@php vendor/bin/pest"
+        ],
+        "check": [
+            "@lint",
+            "@analyse",
+            "@test"
+        ]
+    }
+}
