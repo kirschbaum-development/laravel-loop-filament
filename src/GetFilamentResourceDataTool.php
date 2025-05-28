@@ -10,7 +10,7 @@ use JsonException;
 use Kirschbaum\Loop\Concerns\Makeable;
 use Kirschbaum\Loop\Contracts\Tool;
 use Kirschbaum\Loop\Exceptions\LoopMcpException;
-use Kirschbaum\Loop\Tools\Filament\Concerns\ProvidesFilamentResourceInstance;
+use Kirschbaum\Loop\Filament\Concerns\ProvidesFilamentResourceInstance;
 use Prism\Prism\Tool as PrismTool;
 
 class GetFilamentResourceDataTool implements Tool

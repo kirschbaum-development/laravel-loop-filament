@@ -24,7 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
 use Kirschbaum\Loop\Concerns\Makeable;
 use Kirschbaum\Loop\Contracts\Tool;
-use Kirschbaum\Loop\Tools\Filament\Concerns\ProvidesFilamentResourceInstance;
+use Kirschbaum\Loop\Filament\Concerns\ProvidesFilamentResourceInstance;
 use Livewire\Component as LivewireComponent;
 use Prism\Prism\Tool as PrismTool;
 
