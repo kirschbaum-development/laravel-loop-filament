@@ -59,6 +59,7 @@ class ExecuteResourceActionTool implements Tool
                             if ($actionObj instanceof BulkActionGroup) {
                                 return $actionObj->getActions();
                             }
+
                             return [$actionObj];
                         });
 
