@@ -5,6 +5,7 @@ namespace Kirschbaum\Loop\Filament;
 use Filament\Resources\Pages\Page;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Support\Facades\Log;
 use Kirschbaum\Loop\Concerns\Makeable;
@@ -54,7 +55,14 @@ class ExecuteResourceActionTool implements Tool
                         $records = $resource::getModel()::find($recordIds);
                         $actions = $table->getBulkActions();
 
-                        $targetAction = collect($actions)
+                        $flattenedActions = collect($actions)->flatMap(function ($actionObj) {
+                            if ($actionObj instanceof BulkActionGroup) {
+                                return $actionObj->getActions();
+                            }
+                            return [$actionObj];
+                        });
+
+                        $targetAction = $flattenedActions
                             ->first(fn (BulkAction $actionObj) => $actionObj->getName() === $action);
 
                         if (! $targetAction) {

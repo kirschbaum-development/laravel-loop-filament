@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\BaseFilter;
@@ -163,7 +164,14 @@ class DescribeFilamentResourceTool implements Tool
             //     ->all();
 
             $bulkActions = collect($table->getBulkActions()) // Bulk actions
-                ->map(fn (BulkAction $action) => $this->mapTableAction($action))
+                ->flatMap(function ($action) {
+                    if ($action instanceof BulkActionGroup) {
+                        return collect($action->getActions())
+                            ->map(fn (BulkAction $childAction) => $this->mapTableAction($childAction));
+                    }
+
+                    return [$this->mapTableAction($action)];
+                })
                 ->all();
 
             return [
