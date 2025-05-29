@@ -1,5 +1,7 @@
 # Filament MCP Server - Laravel Loop
 
+![](images/claude-desktop.png)
+
 > [!IMPORTANT]
 > This is a beta version and is not recommended for production use yet.
 
