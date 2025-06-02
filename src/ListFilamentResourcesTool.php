@@ -25,7 +25,7 @@ class ListFilamentResourcesTool implements Tool
     {
         return app(PrismTool::class)
             ->as('list_filament_resources')
-            ->for('Lists all available Filament resources. Filament resources are used to list, fetch and manage data for a given data resource (database table, model, etc.). You cannot use a resource that is not listed here.')
+            ->for('Lists all available Filament resources. Filament resources are used to list, fetch and manage data for a given data resource (database table, model, etc.). You cannot use a resource that is not listed here. Always call this tool first to know which resources are available.')
             ->using(function () {
                 return collect($this->getResources())->map(
                     fn (string $resource) => $resource

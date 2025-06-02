@@ -24,7 +24,7 @@ class ExecuteResourceActionTool implements Tool
     {
         return app(PrismTool::class)
             ->as($this->getName())
-            ->for('Executes a specified action on a Filament resource. Always double check with the user before executing any action.')
+            ->for('Executes a specified action on a Filament resource. Always double check with the user before executing any action. Always call the describe_filament_resource tool before calling this tool.')
             ->withStringParameter('resource', 'The class name of the resource to execute action on.', required: true)
             ->withStringParameter('action', 'The name of the action to execute.', required: true)
             ->withStringParameter('actionType', 'The type of action: "bulk".', required: false)

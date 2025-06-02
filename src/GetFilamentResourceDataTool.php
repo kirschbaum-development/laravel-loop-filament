@@ -22,7 +22,7 @@ class GetFilamentResourceDataTool implements Tool
     {
         return app(PrismTool::class)
             ->as($this->getName())
-            ->for('Gets the data for a given Filament resource, applying optional filters provided in the describe_filament_resource tool.')
+            ->for('Gets the data for a given Filament resource, applying optional filters provided in the describe_filament_resource tool. Always call the describe_filament_resource tool before calling this tool. Try to use the available filters to get the data you need.')
             ->withStringParameter('resource', 'The resource class name of the resource to get data for, from the list_filament_resources tool.', required: true)
             ->withStringParameter('filters', 'JSON string of filters to apply (e.g., \'{"status": "published", "author_id": [1, 2]}\').', required: false)
             ->using(function (string $resource, ?string $filters = null) {

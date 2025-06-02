@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirschbaum\Loop\Filament;
+namespace Tests\Feature;
 
 use Exception;
 use Filament\Forms\Components\Component;
@@ -23,44 +23,28 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
-use Kirschbaum\Loop\Concerns\Makeable;
-use Kirschbaum\Loop\Contracts\Tool;
-use Kirschbaum\Loop\Filament\Concerns\ProvidesFilamentResourceInstance;
 use Livewire\Component as LivewireComponent;
-use Prism\Prism\Tool as PrismTool;
 
-class DescribeFilamentResourceTool implements Tool
+class TestableDescribeFilamentResourceTool
 {
-    use Makeable;
-    use ProvidesFilamentResourceInstance;
-
-    public function build(): PrismTool
-    {
-        return app(PrismTool::class)
-            ->as($this->getName())
-            ->for('Describes the structure, fields, columns, actions, and relationships for a given Filament resource. Always call the list_filament_resources tool before calling this tool.')
-            ->withStringParameter('resource', 'The class name of the resource to describe.', required: true)
-            ->using(function (string $resource) {
-                return json_encode($this->describe($resource));
-            });
-    }
-
     public function getName(): string
     {
         return 'describe_filament_resource';
     }
 
-    public function describe(string $resourceClass): array
+    protected function getResourceInstance(string $resourceClass): Resource
     {
-        $resource = $this->getResourceInstance($resourceClass);
+        try {
+            $resource = app($resourceClass);
 
-        return [
-            'resource' => class_basename($resource),
-            'model' => $resourceClass::getModel(),
-            // 'form' => $this->extractFormSchema($resourceClass),
-            'table' => $this->extractTableSchema($resource),
-            'relationships' => $this->extractRelationshipsInfo($resource),
-        ];
+            if (! $resource instanceof Resource) {
+                throw new Exception(sprintf('Could not find %s resource class', $resourceClass));
+            }
+
+            return $resource;
+        } catch (Exception $e) {
+            throw new Exception(sprintf('Could describe %s resource class. Error: %s', $resourceClass, $e->getMessage()));
+        }
     }
 
     public function extractBasicInfo(Resource $resource): array
@@ -68,33 +52,6 @@ class DescribeFilamentResourceTool implements Tool
         return [
             'resource' => class_basename($resource),
             'model' => $resource::getModel(),
-        ];
-    }
-
-    public function extractFormSchema(Resource $resource): array
-    {
-        $livewireComponent = new class extends LivewireComponent implements HasForms
-        {
-            use \Filament\Forms\Concerns\InteractsWithForms;
-        };
-
-        $form = $resource::form(new Form($livewireComponent));
-        $fields = collect($form->getComponents(true))
-            ->reject(fn (Component $component) => $component instanceof Grid || $component instanceof Fieldset)
-            ->map(fn (Component $component) => $this->mapFormComponent($component, $resource))
-            ->filter()
-            ->values()
-            ->all();
-
-        return ['fields' => $fields];
-    }
-
-    public function extractNavigationInfo(Resource $resource): array
-    {
-        return [
-            'group' => $resource::getNavigationGroup(),
-            'icon' => $resource::getNavigationIcon(),
-            'label' => $resource::getNavigationLabel() ?: $resource::getPluralModelLabel(),
         ];
     }
 
@@ -110,19 +67,14 @@ class DescribeFilamentResourceTool implements Tool
         foreach ($relationshipManagers as $managerClass) {
             try {
                 $manager = app($managerClass);
-                // Relationship details are often defined within the manager or inferred by naming.
-                // This requires more specific introspection or assumptions based on conventions.
-                // Placeholder: Use manager class name as key.
                 $relationName = $manager->getRelationshipName();
-                $modelClass = $resource::getModel();
-                $modelInstance = new $modelClass();
-                $relation = $modelInstance->$relationName();
+                
+                // Try to determine relationship type by inspecting the model
+                $relationshipType = $this->determineRelationshipType($resource, $relationName);
 
                 $relationships[$relationName] = [
-                    'type' => class_basename($relation),
+                    'type' => $relationshipType,
                     'manager' => $managerClass,
-                    'model' => get_class($relation->getRelated()),
-                    'foreignKey' => $relation->getForeignKeyName(),
                 ];
             } catch (\Throwable $e) {
                 // Log error if manager instantiation fails
@@ -130,6 +82,30 @@ class DescribeFilamentResourceTool implements Tool
         }
 
         return $relationships;
+    }
+
+    protected function determineRelationshipType(Resource $resource, string $relationName): string
+    {
+        try {
+            $modelClass = $resource::getModel();
+            $modelInstance = new $modelClass();
+            
+            if (method_exists($modelInstance, $relationName)) {
+                $relation = $modelInstance->$relationName();
+                
+                return match(get_class($relation)) {
+                    'Illuminate\Database\Eloquent\Relations\HasMany' => 'hasMany',
+                    'Illuminate\Database\Eloquent\Relations\BelongsTo' => 'belongsTo',
+                    'Illuminate\Database\Eloquent\Relations\HasOne' => 'hasOne',
+                    'Illuminate\Database\Eloquent\Relations\BelongsToMany' => 'belongsToMany',
+                    default => 'unknown',
+                };
+            }
+        } catch (\Throwable $e) {
+            // If we can't determine the type, return unknown
+        }
+        
+        return 'unknown';
     }
 
     public function extractTableSchema(Resource $resource): array
@@ -192,7 +168,7 @@ class DescribeFilamentResourceTool implements Tool
         }
     }
 
-    public function mapComponentType(Component $component): string
+    protected function mapComponentType(Component $component): string
     {
         return match (true) {
             $component instanceof TextInput => 'text',
@@ -202,80 +178,41 @@ class DescribeFilamentResourceTool implements Tool
             $component instanceof \Filament\Forms\Components\Textarea => 'textarea',
             $component instanceof \Filament\Forms\Components\Checkbox => 'checkbox',
             $component instanceof \Filament\Forms\Components\Toggle => 'toggle',
-            // Add more mappings as needed
             default => class_basename($component), // Fallback to class name
         };
     }
 
-    public function mapFilterType(BaseFilter $filter): string
+    protected function mapFilterType(BaseFilter $filter): string
     {
         return match (true) {
             $filter instanceof TernaryFilter => 'boolean',
             $filter instanceof SelectFilter => 'select',
-            // Add more mappings as needed
             default => class_basename($filter), // Fallback to class name
         };
     }
 
-    public function mapFormComponent(Component $component, Resource $resource): ?array
+    protected function mapTableAction(Action|BulkAction $action): string
     {
-        $baseInfo = [
-            'name' => $component->getName(),
-            'type' => $this->mapComponentType($component),
-            'label' => $component->getLabel(),
-            'required' => method_exists($component, 'isRequired') ? $component->isRequired() : null,
-            'disabled' => method_exists($component, 'isDisabled') ? $component->isDisabled() : null,
-            // 'nullable' => method_exists($component, 'isNullable') ? $component->isNullable() : null, // Needs checking validation rules
-        ];
-
-        if ($component instanceof TextInput) {
-            $baseInfo['maxLength'] = $component->getMaxLength();
-        }
-
-        if ($component instanceof Select && $component->getRelationshipName()) {
-            $modelClass = $resource::getModel();
-            $modelInstance = app($modelClass);
-            $relationshipDefinition = $modelInstance->{$component->getRelationshipName()}();
-
-            $baseInfo['relationship'] = [
-                'type' => class_basename($relationshipDefinition), // e.g., BelongsTo
-                'model' => get_class($relationshipDefinition->getRelated()),
-                'displayColumn' => $component->getRelationshipTitleAttribute(),
-                'foreignKey' => $relationshipDefinition->getForeignKeyName(), // Might need adjustment based on relationship type
-            ];
-        }
-
-        // Add more specific component type mappings here if needed
-
-        return $baseInfo;
-    }
-
-    public function mapTableAction(Action|BulkAction $action): string
-    {
-        // Map common actions to simple strings, fallback to action name
         $name = $action->getName();
 
         return match ($name) {
             'view', 'edit', 'delete', 'forceDelete', 'restore', 'replicate' => $name,
-            default => $name, // Return the action name itself
+            default => $name,
         };
-        // Could potentially add more details like label, icon, color if needed
     }
 
-    public function mapTableColumn(Column $column): array
+    protected function mapTableColumn(Column $column): array
     {
-        $baseInfo = [
+        return [
             'name' => $column->getName(),
             'label' => $column->getLabel(),
             'searchable' => $column->isSearchable(),
             'sortable' => $column->isSortable(),
             'hidden' => $column->isHidden(),
         ];
-
-        return $baseInfo;
     }
 
-    public function mapTableFilter(BaseFilter $filter): array
+    protected function mapTableFilter(BaseFilter $filter): array
     {
         $baseInfo = [
             'name' => $filter->getName(),
@@ -293,8 +230,19 @@ class DescribeFilamentResourceTool implements Tool
                 $baseInfo['optionsSource'] = $options;
             }
         }
-        // Add more specific filter type mappings here if needed
 
         return $baseInfo;
+    }
+
+    public function describe(string $resourceClass): array
+    {
+        $resource = $this->getResourceInstance($resourceClass);
+
+        return [
+            'resource' => class_basename($resource),
+            'model' => $resource::getModel(),
+            'table' => $this->extractTableSchema($resource),
+            'relationships' => $this->extractRelationshipsInfo($resource),
+        ];
     }
 }
