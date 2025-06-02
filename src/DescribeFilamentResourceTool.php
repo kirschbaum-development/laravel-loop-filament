@@ -115,7 +115,7 @@ class DescribeFilamentResourceTool implements Tool
                 // Placeholder: Use manager class name as key.
                 $relationName = $manager->getRelationshipName();
                 $modelClass = $resource::getModel();
-                $modelInstance = new $modelClass();
+                $modelInstance = new $modelClass;
                 $relation = $modelInstance->$relationName();
 
                 $relationships[$relationName] = [

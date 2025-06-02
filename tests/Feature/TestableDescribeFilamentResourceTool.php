@@ -5,12 +5,8 @@ namespace Tests\Feature;
 use Exception;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\Contracts\TranslatableContentDriver;
 use Filament\Tables\Actions\Action;
@@ -68,7 +64,7 @@ class TestableDescribeFilamentResourceTool
             try {
                 $manager = app($managerClass);
                 $relationName = $manager->getRelationshipName();
-                
+
                 // Try to determine relationship type by inspecting the model
                 $relationshipType = $this->determineRelationshipType($resource, $relationName);
 
@@ -88,12 +84,12 @@ class TestableDescribeFilamentResourceTool
     {
         try {
             $modelClass = $resource::getModel();
-            $modelInstance = new $modelClass();
-            
+            $modelInstance = new $modelClass;
+
             if (method_exists($modelInstance, $relationName)) {
                 $relation = $modelInstance->$relationName();
-                
-                return match(get_class($relation)) {
+
+                return match (get_class($relation)) {
                     'Illuminate\Database\Eloquent\Relations\HasMany' => 'hasMany',
                     'Illuminate\Database\Eloquent\Relations\BelongsTo' => 'belongsTo',
                     'Illuminate\Database\Eloquent\Relations\HasOne' => 'hasOne',
@@ -104,7 +100,7 @@ class TestableDescribeFilamentResourceTool
         } catch (\Throwable $e) {
             // If we can't determine the type, return unknown
         }
-        
+
         return 'unknown';
     }
 

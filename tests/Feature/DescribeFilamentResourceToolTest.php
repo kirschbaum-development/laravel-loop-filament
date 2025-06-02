@@ -1,19 +1,19 @@
 <?php
 
-use Tests\Feature\TestUserResource;
-use Tests\Feature\TestPostWithRelationsResource;
-use Tests\Feature\TestUserWithRelationsResource;
 use Kirschbaum\Loop\Filament\DescribeFilamentResourceTool;
+use Tests\Feature\TestPostWithRelationsResource;
+use Tests\Feature\TestUserResource;
+use Tests\Feature\TestUserWithRelationsResource;
 
 it('can instantiate the describe filament resource tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
 
     expect($tool)->toBeInstanceOf(DescribeFilamentResourceTool::class);
     expect($tool->getName())->toBe('describe_filament_resource');
 });
 
 it('can extract table schema using the tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
     $resource = app(TestUserResource::class);
 
     $tableSchema = $tool->extractTableSchema($resource);
@@ -28,7 +28,7 @@ it('can extract table schema using the tool', function () {
 });
 
 it('can extract column properties through the tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
     $resource = app(TestUserResource::class);
 
     $tableSchema = $tool->extractTableSchema($resource);
@@ -46,7 +46,7 @@ it('can extract column properties through the tool', function () {
 });
 
 it('can extract bulk actions through the tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
     $resource = app(TestUserResource::class);
 
     $tableSchema = $tool->extractTableSchema($resource);
@@ -57,7 +57,7 @@ it('can extract bulk actions through the tool', function () {
 });
 
 it('can extract resource relationships through the tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
     $resource = app(TestUserWithRelationsResource::class);
 
     $relationships = $tool->extractRelationshipsInfo($resource);
@@ -75,7 +75,7 @@ it('can extract resource relationships through the tool', function () {
 });
 
 it('can describe a complete resource using the tool', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
 
     $result = $tool->describe(TestUserWithRelationsResource::class);
 
@@ -95,7 +95,7 @@ it('can describe a complete resource using the tool', function () {
 });
 
 it('can extract different relationship types including belongsTo', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
     $resource = app(TestPostWithRelationsResource::class);
 
     $relationships = $tool->extractRelationshipsInfo($resource);
@@ -113,7 +113,7 @@ it('can extract different relationship types including belongsTo', function () {
 });
 
 it('can describe a resource with mixed relationship types', function () {
-    $tool = new DescribeFilamentResourceTool();
+    $tool = new DescribeFilamentResourceTool;
 
     $result = $tool->describe(TestPostWithRelationsResource::class);
 
