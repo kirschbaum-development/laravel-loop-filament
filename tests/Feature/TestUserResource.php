@@ -4,10 +4,10 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Tables;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class TestUserResource extends Resource
@@ -68,7 +68,7 @@ class TestUserResource extends Resource
                                 $data['created_at_before'],
                                 fn (Builder $query, $date): Builder => $query->whereDate('date', '<=', $date),
                             );
-                    })
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
