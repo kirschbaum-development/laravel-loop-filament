@@ -115,7 +115,7 @@ class DescribeFilamentResourceTool implements Tool
                 // Placeholder: Use manager class name as key.
                 $relationName = $manager->getRelationshipName();
                 $modelClass = $resource::getModel();
-                $modelInstance = new $modelClass();
+                $modelInstance = new $modelClass;
                 $relation = $modelInstance->$relationName();
 
                 $relationships[$relationName] = [
@@ -163,8 +163,8 @@ class DescribeFilamentResourceTool implements Tool
                     'type' => 'searchable_column',
                     'example' => [
                         'description' => 'Use string value to search within this column',
-                        'values' => ['search term', 'partial match']
-                    ]
+                        'values' => ['search term', 'partial match'],
+                    ],
                 ])
                 ->keyBy('name')
                 ->all();
@@ -291,7 +291,7 @@ class DescribeFilamentResourceTool implements Tool
             $baseInfo['example'] = [
                 'description' => 'Use true for yes, false for no, null for all',
                 'values' => [true, false, null],
-                'usage' => "Include as '{$filter->getName()}': true|false|null in your filters JSON"
+                'usage' => "Include as '{$filter->getName()}': true|false|null in your filters JSON",
             ];
         } elseif ($filter instanceof SelectFilter) {
             $baseInfo['optionsSource'] = 'Dynamic/Callable';
@@ -305,24 +305,24 @@ class DescribeFilamentResourceTool implements Tool
                     'description' => 'Use array of option keys or single option key',
                     'values' => [
                         'single' => $exampleSingle,
-                        'multiple' => $exampleMultiple
+                        'multiple' => $exampleMultiple,
                     ],
-                    'usage' => "Include as '{$filter->getName()}': [" . implode(', ', array_map(fn($v) => "\"$v\"", $exampleMultiple)) . "] or '{$filter->getName()}': \"$exampleSingle\" in your filters JSON"
+                    'usage' => "Include as '{$filter->getName()}': [".implode(', ', array_map(fn ($v) => "\"$v\"", $exampleMultiple))."] or '{$filter->getName()}': \"$exampleSingle\" in your filters JSON",
                 ];
             } else {
                 $baseInfo['example'] = [
                     'description' => 'Use array of option values or single option value',
                     'values' => [
                         'single' => 'option_value',
-                        'multiple' => ['option_value_1', 'option_value_2']
+                        'multiple' => ['option_value_1', 'option_value_2'],
                     ],
-                    'usage' => "Include as '{$filter->getName()}': [\"option_value_1\", \"option_value_2\"] or '{$filter->getName()}': \"option_value\" in your filters JSON"
+                    'usage' => "Include as '{$filter->getName()}': [\"option_value_1\", \"option_value_2\"] or '{$filter->getName()}': \"option_value\" in your filters JSON",
                 ];
             }
         } else {
             $baseInfo['example'] = [
                 'description' => 'Custom filter - check filter implementation for expected values',
-                'usage' => "Include as '{$filter->getName()}': value in your filters JSON"
+                'usage' => "Include as '{$filter->getName()}': value in your filters JSON",
             ];
         }
 
