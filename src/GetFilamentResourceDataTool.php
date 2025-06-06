@@ -4,6 +4,8 @@ namespace Kirschbaum\Loop\Filament;
 
 use Exception;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use JsonException;
@@ -32,6 +34,8 @@ class GetFilamentResourceDataTool implements Tool
                 try {
                     $listPageClass = $resource::getPages()['index'];
                     $component = $listPageClass->getPage();
+
+                    /** @var InteractsWithTable $listPage */
                     $listPage = new $component;
                     $listPage->bootedInteractsWithTable();
                     $table = $listPage->getTable();
@@ -44,17 +48,29 @@ class GetFilamentResourceDataTool implements Tool
                             $listPage->tableSearch = $filters[$column->getName()];
                         });
 
+                    $listPage->resetTableFiltersForm();
+
                     foreach ($listPage->getTable()->getFilters() as $filter) {
-                        if (method_exists($filter, 'isMultiple') && $filter->isMultiple()) {
-                            $listPage->tableFilters[$filter->getName()] = [
-                                'values' => isset($filters[$filter->getName()])
-                                    ? (array) $filters[$filter->getName()]
-                                    : null,
-                            ];
+                        $value = $filters[$filter->getName()] ?? null;
+
+                        if (blank($value)) {
+                            continue;
+                        }
+
+                        if ($filter instanceof SelectFilter) {
+                            if (method_exists($filter, 'isMultiple') && $filter->isMultiple()) {
+                                $listPage->tableFilters[$filter->getName()] = [
+                                    'values' => isset($filters[$filter->getName()])
+                                        ? (array) $filters[$filter->getName()]
+                                        : null,
+                                ];
+                            } else {
+                                $listPage->tableFilters[$filter->getName()] = [
+                                    'value' => $filters[$filter->getName()] ?? null,
+                                ];
+                            }
                         } else {
-                            $listPage->tableFilters[$filter->getName()] = [
-                                'value' => $filters[$filter->getName()] ?? null,
-                            ];
+                            $listPage->tableFilters[$filter->getName()] = $value;
                         }
                     }
 

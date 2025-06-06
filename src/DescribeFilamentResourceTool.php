@@ -217,14 +217,14 @@ class DescribeFilamentResourceTool implements Tool
         };
     }
 
-    public function mapFormComponent(Component $component, Resource $resource): ?array
+    public function mapFormComponent(Component $component, ?Resource $resource = null): ?array
     {
         $baseInfo = [
             'name' => $component->getName(),
             'type' => $this->mapComponentType($component),
             'label' => $component->getLabel(),
             'required' => method_exists($component, 'isRequired') ? $component->isRequired() : null,
-            'disabled' => method_exists($component, 'isDisabled') ? $component->isDisabled() : null,
+            // 'disabled' => method_exists($component, 'isDisabled') ? $component->isDisabled() : null, // Needs container to be instantiated
             // 'nullable' => method_exists($component, 'isNullable') ? $component->isNullable() : null, // Needs checking validation rules
         ];
 
@@ -232,7 +232,7 @@ class DescribeFilamentResourceTool implements Tool
             $baseInfo['maxLength'] = $component->getMaxLength();
         }
 
-        if ($component instanceof Select && $component->getRelationshipName()) {
+        if ($resource && $component instanceof Select && $component->getRelationshipName()) {
             $modelClass = $resource::getModel();
             $modelInstance = app($modelClass);
             $relationshipDefinition = $modelInstance->{$component->getRelationshipName()}();
@@ -293,6 +293,21 @@ class DescribeFilamentResourceTool implements Tool
                 $baseInfo['optionsSource'] = $options;
             }
         }
+
+        if ($filter->hasFormSchema()) {
+            /** @var Component $component */
+            $fields = collect($filter->getFormSchema())
+                ->reject(fn (Component $component) => $component instanceof Grid || $component instanceof Fieldset)
+                ->map(fn (Component $component) => $this->mapFormComponent($component))
+                ->filter()
+                ->values()
+                ->all();
+
+            if ($fields) {
+                $baseInfo['fields'] = $fields;
+            }
+        }
+
         // Add more specific filter type mappings here if needed
 
         return $baseInfo;
