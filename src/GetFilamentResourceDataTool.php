@@ -32,6 +32,8 @@ class GetFilamentResourceDataTool implements Tool
                 try {
                     $listPageClass = $resource::getPages()['index'];
                     $component = $listPageClass->getPage();
+
+                    /** @var InteractsWithTable $listPage */
                     $listPage = new $component;
                     $listPage->bootedInteractsWithTable();
                     $table = $listPage->getTable();
@@ -43,6 +45,8 @@ class GetFilamentResourceDataTool implements Tool
                         ->each(function (Column $column) use (&$listPage, $filters) {
                             $listPage->tableSearch = $filters[$column->getName()];
                         });
+
+                    $listPage->resetTableFiltersForm();
 
                     foreach ($listPage->getTable()->getFilters() as $filter) {
                         if (method_exists($filter, 'isMultiple') && $filter->isMultiple()) {
@@ -64,8 +68,6 @@ class GetFilamentResourceDataTool implements Tool
                             }
                         }
                     }
-
-                    dump($listPage->tableFilters, $filters);
 
                     // TODO: Allow the tool to specify the number of results to return with a max
                     $results = $listPage->getFilteredTableQuery()->take(10)->get();

@@ -281,7 +281,10 @@ class DescribeFilamentResourceTool implements Tool
             $baseInfo['usage'] = 'Please use the form schema to filter the data.';
             $baseInfo['type'] = 'form';
             $baseInfo['form'] = collect($filter->getFormSchema())
+                ->reject(fn (Component $component) => $component instanceof Grid || $component instanceof Fieldset)
                 ->map(fn (Component $component) => $this->mapFormComponent($component))
+                ->filter()
+                ->values()
                 ->all();
         }
 
