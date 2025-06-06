@@ -161,10 +161,6 @@ class DescribeFilamentResourceTool implements Tool
                     'name' => $column['name'],
                     'label' => $column['label'],
                     'type' => 'searchable_column',
-                    'example' => [
-                        'description' => 'Use string value to search within this column',
-                        'values' => ['search term', 'partial match'],
-                    ],
                 ])
                 ->keyBy('name')
                 ->all();
@@ -221,22 +217,20 @@ class DescribeFilamentResourceTool implements Tool
         };
     }
 
-    public function mapFormComponent(Component $component, Resource $resource): ?array
+    public function mapFormComponent(Component $component, ?Resource $resource = null): ?array
     {
         $baseInfo = [
             'name' => $component->getName(),
             'type' => $this->mapComponentType($component),
             'label' => $component->getLabel(),
             'required' => method_exists($component, 'isRequired') ? $component->isRequired() : null,
-            'disabled' => method_exists($component, 'isDisabled') ? $component->isDisabled() : null,
-            // 'nullable' => method_exists($component, 'isNullable') ? $component->isNullable() : null, // Needs checking validation rules
         ];
 
         if ($component instanceof TextInput) {
             $baseInfo['maxLength'] = $component->getMaxLength();
         }
 
-        if ($component instanceof Select && $component->getRelationshipName()) {
+        if ($resource && $component instanceof Select && $component->getRelationshipName()) {
             $modelClass = $resource::getModel();
             $modelInstance = app($modelClass);
             $relationshipDefinition = $modelInstance->{$component->getRelationshipName()}();
@@ -245,25 +239,21 @@ class DescribeFilamentResourceTool implements Tool
                 'type' => class_basename($relationshipDefinition), // e.g., BelongsTo
                 'model' => get_class($relationshipDefinition->getRelated()),
                 'displayColumn' => $component->getRelationshipTitleAttribute(),
-                'foreignKey' => $relationshipDefinition->getForeignKeyName(), // Might need adjustment based on relationship type
+                'foreignKey' => $relationshipDefinition->getForeignKeyName(),
             ];
         }
-
-        // Add more specific component type mappings here if needed
 
         return $baseInfo;
     }
 
     public function mapTableAction(Action|BulkAction $action): string
     {
-        // Map common actions to simple strings, fallback to action name
         $name = $action->getName();
 
         return match ($name) {
             'view', 'edit', 'delete', 'forceDelete', 'restore', 'replicate' => $name,
-            default => $name, // Return the action name itself
+            default => $name,
         };
-        // Could potentially add more details like label, icon, color if needed
     }
 
     public function mapTableColumn(Column $column): array
@@ -287,44 +277,25 @@ class DescribeFilamentResourceTool implements Tool
             'type' => $this->mapFilterType($filter),
         ];
 
-        if ($filter instanceof TernaryFilter) {
-            $baseInfo['example'] = [
-                'description' => 'Use true for yes, false for no, null for all',
-                'values' => [true, false, null],
-                'usage' => "Include as '{$filter->getName()}': true|false|null in your filters JSON",
-            ];
-        } elseif ($filter instanceof SelectFilter) {
-            $baseInfo['optionsSource'] = 'Dynamic/Callable';
+        if ($filter->hasFormSchema()) {
+            $baseInfo['usage'] = 'Please use the form schema to filter the data.';
+            $baseInfo['type'] = 'form';
+            $baseInfo['form'] = collect($filter->getFormSchema())
+                ->map(fn (Component $component) => $this->mapFormComponent($component))
+                ->all();
+        }
 
+        if ($filter instanceof TernaryFilter) {
+            // Condition is implicit (true/false/all)
+        } elseif ($filter instanceof SelectFilter) {
+            $baseInfo['optionsSource'] = 'Dynamic/Callable'; // Getting exact source is complex
+
+            // Try to get options if they are simple array
             if (method_exists($filter, 'getOptions') && is_array($options = $filter->getOptions())) {
                 $baseInfo['optionsSource'] = $options;
-                $exampleSingle = array_key_first($options);
-                $exampleMultiple = array_slice(array_keys($options), 0, 2);
-
-                $baseInfo['example'] = [
-                    'description' => 'Use array of option keys or single option key',
-                    'values' => [
-                        'single' => $exampleSingle,
-                        'multiple' => $exampleMultiple,
-                    ],
-                    'usage' => "Include as '{$filter->getName()}': [".implode(', ', array_map(fn ($v) => "\"$v\"", $exampleMultiple))."] or '{$filter->getName()}': \"$exampleSingle\" in your filters JSON",
-                ];
-            } else {
-                $baseInfo['example'] = [
-                    'description' => 'Use array of option values or single option value',
-                    'values' => [
-                        'single' => 'option_value',
-                        'multiple' => ['option_value_1', 'option_value_2'],
-                    ],
-                    'usage' => "Include as '{$filter->getName()}': [\"option_value_1\", \"option_value_2\"] or '{$filter->getName()}': \"option_value\" in your filters JSON",
-                ];
             }
-        } else {
-            $baseInfo['example'] = [
-                'description' => 'Custom filter - check filter implementation for expected values',
-                'usage' => "Include as '{$filter->getName()}': value in your filters JSON",
-            ];
         }
+        // Add more specific filter type mappings here if needed
 
         return $baseInfo;
     }
