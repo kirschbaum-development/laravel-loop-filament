@@ -45,6 +45,34 @@ it('can extract column properties through the tool', function () {
         ->and($emailColumn['sortable'])->toBeTrue();
 });
 
+it('can extract filters through the tool', function () {
+    $tool = new DescribeFilamentResourceTool;
+    $resource = app(TestUserResource::class);
+
+    $tableSchema = $tool->extractTableSchema($resource);
+    $filters = $tableSchema['filters'];
+
+    $nameFilter = collect($filters)->firstWhere('name', 'name');
+    expect($nameFilter)->toBeArray()
+        ->and($nameFilter['type'])->toBe('select')
+        ->and($nameFilter['options'])->toBeArray();
+
+    $emailFilter = collect($filters)->firstWhere('name', 'email');
+    expect($emailFilter)->toBeArray()
+        ->and($emailFilter['type'])->toBe('searchable_column');
+
+    $createdAtFilter = collect($filters)->firstWhere('name', 'created_at');
+    expect($createdAtFilter)->toBeArray()
+        ->and($createdAtFilter['type'])->toBe('form')
+        ->and($createdAtFilter['form'])->toBeArray()
+        ->and($createdAtFilter['form'][0])->toBeArray()
+        ->and($createdAtFilter['form'][0]['name'])->toBe('created_at_after')
+        ->and($createdAtFilter['form'][0]['type'])->toBe('datetime')
+        ->and($createdAtFilter['form'][1])->toBeArray()
+        ->and($createdAtFilter['form'][1]['name'])->toBe('created_at_before')
+        ->and($createdAtFilter['form'][1]['type'])->toBe('datetime');
+});
+
 it('can extract bulk actions through the tool', function () {
     $tool = new DescribeFilamentResourceTool;
     $resource = app(TestUserResource::class);

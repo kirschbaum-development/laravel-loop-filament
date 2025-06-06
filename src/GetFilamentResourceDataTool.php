@@ -22,7 +22,7 @@ class GetFilamentResourceDataTool implements Tool
     {
         return app(PrismTool::class)
             ->as($this->getName())
-            ->for('Gets the data for a given Filament resource, applying optional filters provided in the describe_filament_resource tool. Always call the describe_filament_resource tool before calling this tool. Try to use the available filters to get the data you need.')
+            ->for('Gets the data for a given Filament resource, applying optional filters (try to use them). Always call the describe_filament_resource tool before calling this tool. Always try to use the available filters to get the data you need.')
             ->withStringParameter('resource', 'The resource class name of the resource to get data for, from the list_filament_resources tool.', required: true)
             ->withStringParameter('filters', 'JSON string of filters to apply (e.g., \'{"status": "published", "author_id": [1, 2]}\').', required: false)
             ->using(function (string $resource, ?string $filters = null) {
@@ -32,6 +32,8 @@ class GetFilamentResourceDataTool implements Tool
                 try {
                     $listPageClass = $resource::getPages()['index'];
                     $component = $listPageClass->getPage();
+
+                    /** @var InteractsWithTable $listPage */
                     $listPage = new $component;
                     $listPage->bootedInteractsWithTable();
                     $table = $listPage->getTable();
@@ -44,6 +46,8 @@ class GetFilamentResourceDataTool implements Tool
                             $listPage->tableSearch = $filters[$column->getName()];
                         });
 
+                    $listPage->resetTableFiltersForm();
+
                     foreach ($listPage->getTable()->getFilters() as $filter) {
                         if (method_exists($filter, 'isMultiple') && $filter->isMultiple()) {
                             $listPage->tableFilters[$filter->getName()] = [
@@ -55,6 +59,13 @@ class GetFilamentResourceDataTool implements Tool
                             $listPage->tableFilters[$filter->getName()] = [
                                 'value' => $filters[$filter->getName()] ?? null,
                             ];
+
+                            if ($filter->hasFormSchema()) {
+                                foreach ($filter->getFormSchema() as $formSchema) {
+                                    $listPage->tableFilters[$filter->getName()][$formSchema->getName()] =
+                                        $filters[$formSchema->getName()] ?? null;
+                                }
+                            }
                         }
                     }
 

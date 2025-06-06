@@ -217,22 +217,20 @@ class DescribeFilamentResourceTool implements Tool
         };
     }
 
-    public function mapFormComponent(Component $component, Resource $resource): ?array
+    public function mapFormComponent(Component $component, ?Resource $resource = null): ?array
     {
         $baseInfo = [
             'name' => $component->getName(),
             'type' => $this->mapComponentType($component),
             'label' => $component->getLabel(),
             'required' => method_exists($component, 'isRequired') ? $component->isRequired() : null,
-            'disabled' => method_exists($component, 'isDisabled') ? $component->isDisabled() : null,
-            // 'nullable' => method_exists($component, 'isNullable') ? $component->isNullable() : null, // Needs checking validation rules
         ];
 
         if ($component instanceof TextInput) {
             $baseInfo['maxLength'] = $component->getMaxLength();
         }
 
-        if ($component instanceof Select && $component->getRelationshipName()) {
+        if ($resource && $component instanceof Select && $component->getRelationshipName()) {
             $modelClass = $resource::getModel();
             $modelInstance = app($modelClass);
             $relationshipDefinition = $modelInstance->{$component->getRelationshipName()}();
@@ -241,25 +239,21 @@ class DescribeFilamentResourceTool implements Tool
                 'type' => class_basename($relationshipDefinition), // e.g., BelongsTo
                 'model' => get_class($relationshipDefinition->getRelated()),
                 'displayColumn' => $component->getRelationshipTitleAttribute(),
-                'foreignKey' => $relationshipDefinition->getForeignKeyName(), // Might need adjustment based on relationship type
+                'foreignKey' => $relationshipDefinition->getForeignKeyName(),
             ];
         }
-
-        // Add more specific component type mappings here if needed
 
         return $baseInfo;
     }
 
     public function mapTableAction(Action|BulkAction $action): string
     {
-        // Map common actions to simple strings, fallback to action name
         $name = $action->getName();
 
         return match ($name) {
             'view', 'edit', 'delete', 'forceDelete', 'restore', 'replicate' => $name,
-            default => $name, // Return the action name itself
+            default => $name,
         };
-        // Could potentially add more details like label, icon, color if needed
     }
 
     public function mapTableColumn(Column $column): array
@@ -283,17 +277,26 @@ class DescribeFilamentResourceTool implements Tool
             'type' => $this->mapFilterType($filter),
         ];
 
+        if ($filter->hasFormSchema()) {
+            $baseInfo['usage'] = 'Please use the form schema to filter the data.';
+            $baseInfo['type'] = 'form';
+            $baseInfo['form'] = collect($filter->getFormSchema())
+                ->reject(fn (Component $component) => $component instanceof Grid || $component instanceof Fieldset)
+                ->map(fn (Component $component) => $this->mapFormComponent($component))
+                ->filter()
+                ->values()
+                ->all();
+        }
+
         if ($filter instanceof TernaryFilter) {
             // Condition is implicit (true/false/all)
         } elseif ($filter instanceof SelectFilter) {
-            $baseInfo['optionsSource'] = 'Dynamic/Callable'; // Getting exact source is complex
+            $baseInfo['options'] = 'Dynamic';
 
-            // Try to get options if they are simple array
             if (method_exists($filter, 'getOptions') && is_array($options = $filter->getOptions())) {
-                $baseInfo['optionsSource'] = $options;
+                $baseInfo['options'] = $options;
             }
         }
-        // Add more specific filter type mappings here if needed
 
         return $baseInfo;
     }
