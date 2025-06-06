@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Builder;
 
 class TestUserResource extends Resource
 {
@@ -42,7 +45,30 @@ class TestUserResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('name')
+                    ->options([
+                        'John' => 'John',
+                        'Jane' => 'Jane',
+                    ]),
+                Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_at_after')
+                            ->label('Created After')
+                            ->default(Carbon::now()->subMonths(6)),
+                        Forms\Components\DatePicker::make('created_at_before')
+                            ->label('Created Before'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_at_after'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('date', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_at_before'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('date', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

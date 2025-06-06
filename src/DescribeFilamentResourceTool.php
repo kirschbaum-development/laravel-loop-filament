@@ -288,14 +288,12 @@ class DescribeFilamentResourceTool implements Tool
         if ($filter instanceof TernaryFilter) {
             // Condition is implicit (true/false/all)
         } elseif ($filter instanceof SelectFilter) {
-            $baseInfo['optionsSource'] = 'Dynamic/Callable'; // Getting exact source is complex
+            $baseInfo['options'] = 'Dynamic';
 
-            // Try to get options if they are simple array
             if (method_exists($filter, 'getOptions') && is_array($options = $filter->getOptions())) {
-                $baseInfo['optionsSource'] = $options;
+                $baseInfo['options'] = $options;
             }
         }
-        // Add more specific filter type mappings here if needed
 
         return $baseInfo;
     }
