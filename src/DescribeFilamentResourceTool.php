@@ -161,6 +161,10 @@ class DescribeFilamentResourceTool implements Tool
                     'name' => $column['name'],
                     'label' => $column['label'],
                     'type' => 'searchable_column',
+                    'example' => [
+                        'description' => 'Use string value to search within this column',
+                        'values' => ['search term', 'partial match']
+                    ]
                 ])
                 ->keyBy('name')
                 ->all();
@@ -284,16 +288,43 @@ class DescribeFilamentResourceTool implements Tool
         ];
 
         if ($filter instanceof TernaryFilter) {
-            // Condition is implicit (true/false/all)
+            $baseInfo['example'] = [
+                'description' => 'Use true for yes, false for no, null for all',
+                'values' => [true, false, null],
+                'usage' => "Include as '{$filter->getName()}': true|false|null in your filters JSON"
+            ];
         } elseif ($filter instanceof SelectFilter) {
-            $baseInfo['optionsSource'] = 'Dynamic/Callable'; // Getting exact source is complex
+            $baseInfo['optionsSource'] = 'Dynamic/Callable';
 
-            // Try to get options if they are simple array
             if (method_exists($filter, 'getOptions') && is_array($options = $filter->getOptions())) {
                 $baseInfo['optionsSource'] = $options;
+                $exampleSingle = array_key_first($options);
+                $exampleMultiple = array_slice(array_keys($options), 0, 2);
+
+                $baseInfo['example'] = [
+                    'description' => 'Use array of option keys or single option key',
+                    'values' => [
+                        'single' => $exampleSingle,
+                        'multiple' => $exampleMultiple
+                    ],
+                    'usage' => "Include as '{$filter->getName()}': [" . implode(', ', array_map(fn($v) => "\"$v\"", $exampleMultiple)) . "] or '{$filter->getName()}': \"$exampleSingle\" in your filters JSON"
+                ];
+            } else {
+                $baseInfo['example'] = [
+                    'description' => 'Use array of option values or single option value',
+                    'values' => [
+                        'single' => 'option_value',
+                        'multiple' => ['option_value_1', 'option_value_2']
+                    ],
+                    'usage' => "Include as '{$filter->getName()}': [\"option_value_1\", \"option_value_2\"] or '{$filter->getName()}': \"option_value\" in your filters JSON"
+                ];
             }
+        } else {
+            $baseInfo['example'] = [
+                'description' => 'Custom filter - check filter implementation for expected values',
+                'usage' => "Include as '{$filter->getName()}': value in your filters JSON"
+            ];
         }
-        // Add more specific filter type mappings here if needed
 
         return $baseInfo;
     }
