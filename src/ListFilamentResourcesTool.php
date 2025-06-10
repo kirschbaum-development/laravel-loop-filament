@@ -19,7 +19,7 @@ class ListFilamentResourcesTool implements Tool
     /**
      * @param  resource[]  $resources
      */
-    public function __construct(private array $resources = []) {}
+    public function __construct(protected readonly array $resources = []) {}
 
     public function build(): PrismTool
     {

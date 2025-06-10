@@ -9,14 +9,14 @@ use Kirschbaum\Loop\Contracts\Toolkit;
 use Kirschbaum\Loop\Enums\Mode;
 
 /**
- * @method static self make(Resource[] $resources, Mode $mode = Mode::ReadOnly)
+ * @method static self make(string[] $resources = [], Mode $mode = Mode::ReadOnly)
  */
 class FilamentToolkit implements Toolkit
 {
     use Makeable;
 
     /**
-     * @param  resource[]  $resources
+     * @param  class-string<resource>[]  $resources
      */
     public function __construct(
         public readonly array $resources = [],
