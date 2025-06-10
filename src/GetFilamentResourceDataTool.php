@@ -3,10 +3,12 @@
 namespace Kirschbaum\Loop\Filament;
 
 use Exception;
+use Filament\Pages\Page;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use JsonException;
@@ -28,7 +30,7 @@ class GetFilamentResourceDataTool implements Tool
         return app(PrismTool::class)
             ->as($this->getName())
             ->for('Gets the data for a given Filament resource, applying optional filters (try to use them). Always call the describe_filament_resource tool before calling this tool. Always try to use the available filters to get the data you need.')
-            ->withStringParameter('resource', 'The resource class name of the resource to get data for, from the list_filament_resources tool.', required: true)
+            ->withStringParameter('resource', 'The resource class name of the resource to get data for, from the list_filament_resources tool.')
             ->withStringParameter('filters', 'JSON string of filters to apply (e.g., \'{"status": "published", "author_id": [1, 2]}\').', required: false)
             ->withNumberParameter('perPage', 'The resource data is paginated. This is the number of records per page. It defaults to 10', required: false)
             ->withNumberParameter('page', 'The resource data is paginated. This is the page the paginated results should be from.', required: false)
