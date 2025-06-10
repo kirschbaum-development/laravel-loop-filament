@@ -3,12 +3,10 @@
 namespace Kirschbaum\Loop\Filament;
 
 use Exception;
-use Filament\Pages\Page;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\Column;
-use Filament\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use JsonException;
