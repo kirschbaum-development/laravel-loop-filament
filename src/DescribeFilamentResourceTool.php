@@ -38,7 +38,7 @@ class DescribeFilamentResourceTool implements Tool
     {
         return app(PrismTool::class)
             ->as($this->getName())
-            ->for('Describes the structure, fields, columns, actions, and relationships for a given Filament resource. Always call the list_filament_resources tool before calling this tool.')
+            ->for('Describes the structure, fields, columns, actions, and relationships for a given Filament resource. Must call the list_filament_resources tool before calling this tool.')
             ->withStringParameter('resource', 'The class name of the resource to describe.', required: true)
             ->using(function (string $resource) {
                 return json_encode($this->describe($resource));
@@ -180,9 +180,14 @@ class DescribeFilamentResourceTool implements Tool
 
             return [
                 'columns' => $columns,
-                'filters' => array_values($filters), // Re-index the array
+                'filters' => array_values($filters),
                 'actions' => [
                     'bulk' => $bulkActions,
+                ],
+                'pagination' => [
+                    'total' => 'Total number of records (int)',
+                    'per_page' => 'Number of records per page (int)',
+                    'current_page' => 'Current page number (int)',
                 ],
             ];
         } catch (Exception $e) {
@@ -212,8 +217,7 @@ class DescribeFilamentResourceTool implements Tool
         return match (true) {
             $filter instanceof TernaryFilter => 'boolean',
             $filter instanceof SelectFilter => 'select',
-            // Add more mappings as needed
-            default => class_basename($filter), // Fallback to class name
+            default => class_basename($filter),
         };
     }
 

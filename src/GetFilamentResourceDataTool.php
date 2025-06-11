@@ -27,10 +27,10 @@ class GetFilamentResourceDataTool implements Tool
     {
         return app(PrismTool::class)
             ->as($this->getName())
-            ->for('Gets the data for a given Filament resource, applying optional filters (try to use them). Always call the describe_filament_resource tool before calling this tool. Always try to use the available filters to get the data you need.')
+            ->for('Retrieves paginated data from a Filament resource with optional filtering. Response includes page count and total record count. Must call describe_filament_resource first to understand available filters and structure. Use filters to narrow results when possible for better performance.')
             ->withStringParameter('resource', 'The resource class name of the resource to get data for, from the list_filament_resources tool.')
             ->withStringParameter('filters', 'JSON string of filters to apply (e.g., \'{"status": "published", "author_id": [1, 2]}\').', required: false)
-            ->withNumberParameter('perPage', 'The resource data is paginated. This is the number of records per page. It defaults to 10', required: false)
+            ->withNumberParameter('perPage', 'The resource data is paginated. This is the number of records per page. It defaults to 10. Maximum is 100.', required: false)
             ->withNumberParameter('page', 'The resource data is paginated. This is the page the paginated results should be from.', required: false)
             ->using(function (string $resource, ?string $filters = null, ?int $perPage = 10, ?int $page = null) {
                 $resource = $this->getResourceInstance($resource);
@@ -72,6 +72,7 @@ class GetFilamentResourceDataTool implements Tool
                         }
                     }
 
+                    $perPage = $perPage > 100 ? 100 : $perPage;
                     $results = $listPage->getFilteredTableQuery()->paginate(perPage: $perPage, page: $page);
 
                     $outputData = [
