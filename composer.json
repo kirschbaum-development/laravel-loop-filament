@@ -24,9 +24,9 @@
     ],
     "require": {
         "spatie/laravel-package-tools": "^1.18",
-        "filament/support": "^3.2",
-        "filament/notifications": "^3.2",
-        "filament/filament": "^3.2"
+        "filament/support": "^3.2|^4.0",
+        "filament/notifications": "^3.2|^4.0",
+        "filament/filament": "^3.2|^4.0"
     },
     "require-dev": {
         "pestphp/pest": "^3.8",
